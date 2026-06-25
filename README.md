@@ -1,2 +1,2 @@
 # hlmando-catalogo
-HL Mando Catálogo Amortiuadores
+HL Mando Catálogo Amortiguadores
