@@ -3482,31 +3482,41 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   function esc(v){ return String(v || '').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function imageCandidates(sku, name, index){
     var cleanSku = norm(sku);
-    var cleanName = String(name || '').trim();
+    var cleanName = String(name || '').trim().replace(/\.(png|jpg|jpeg|webp)$/i,'');
     var position = Number(index || 0) + 1;
     var suffixes = ['FRO','LEF','RIT'];
     var suffix = suffixes[position - 1] || suffixes[0];
-    var extensions = ['.png','.jpg','.jpeg','.webp','.PNG','.JPG','.JPEG','.WEBP'];
-    var roots = [
-      'images/' + cleanSku + '/editadas/',
-      'images/' + cleanSku + '/'
-    ];
-    var bases = [];
+    var extensions = ['.png','.PNG','.jpg','.JPG','.jpeg','.JPEG','.webp','.WEBP'];
 
-    if(cleanName){
-      bases.push(cleanName.replace(/\.(png|jpg|jpeg|webp)$/i,''));
-    }
-    bases.push(cleanSku + '_' + suffix);
-    bases.push(cleanSku + '-' + position);
+    /*
+      Orden de búsqueda:
+      1) _FRO / _LEF / _RIT dentro de editadas
+      2) _FRO / _LEF / _RIT directamente en la carpeta del número de parte
+      3) -1 / -2 / -3 dentro de editadas
+      4) -1 / -2 / -3 directamente en la carpeta del número de parte
 
-    var uniqueBases = bases.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+      Se prueba primero PNG para que el formato MSS027619-1.png aparezca
+      inmediatamente, sin esperar decenas de intentos fallidos.
+    */
+    var namedBase = cleanName || (cleanSku + '_' + suffix);
+    var suffixBase = cleanSku + '_' + suffix;
+    var numberedBase = cleanSku + '-' + position;
     var candidates = [];
-    roots.forEach(function(root){
-      uniqueBases.forEach(function(base){
-        extensions.forEach(function(ext){ candidates.push(root + base + ext); });
-      });
+
+    extensions.forEach(function(ext){
+      candidates.push('images/' + cleanSku + '/editadas/' + namedBase + ext);
+      candidates.push('images/' + cleanSku + '/' + namedBase + ext);
+
+      if(suffixBase !== namedBase){
+        candidates.push('images/' + cleanSku + '/editadas/' + suffixBase + ext);
+        candidates.push('images/' + cleanSku + '/' + suffixBase + ext);
+      }
+
+      candidates.push('images/' + cleanSku + '/editadas/' + numberedBase + ext);
+      candidates.push('images/' + cleanSku + '/' + numberedBase + ext);
     });
-    return candidates.filter(function(v,i,a){ return a.indexOf(v) === i; });
+
+    return candidates.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
   }
   function setWithFallback(img, candidates){
     var i = 0;
