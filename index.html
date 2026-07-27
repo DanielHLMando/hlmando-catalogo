@@ -3486,7 +3486,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
     var position = Number(index || 0) + 1;
     var suffixes = ['FRO','LEF','RIT'];
     var suffix = suffixes[position - 1] || suffixes[0];
-    var extensions = ['.png','.PNG','.jpg','.JPG','.jpeg','.JPEG','.webp','.WEBP'];
+    var extensions = ['.jpg','.JPG','.jpeg','.JPEG','.png','.PNG','.webp','.WEBP'];
 
     /*
       Orden de búsqueda:
@@ -3495,8 +3495,8 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
       3) -1 / -2 / -3 dentro de editadas
       4) -1 / -2 / -3 directamente en la carpeta del número de parte
 
-      Se prueba primero PNG para que el formato MSS027619-1.png aparezca
-      inmediatamente, sin esperar decenas de intentos fallidos.
+      Se prueban JPG/JPEG y PNG, incluyendo nombres -1/-2/-3 y _FRO/_LEF/_RIT,
+      tanto dentro de editadas como directamente en la carpeta del número de parte.
     */
     var namedBase = cleanName || (cleanSku + '_' + suffix);
     var suffixBase = cleanSku + '_' + suffix;
