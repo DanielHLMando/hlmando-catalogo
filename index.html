@@ -3704,5 +3704,86 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
 })();
 </script>
 <div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.20-BOOK2-AMORTIGUADORES-MODELO-UNICO-FIX</div>
+
+<script id="modelo-unico-hard-fix">
+(function(){
+  function getCatalog(){
+    try { if (Array.isArray(window.catalogo)) return window.catalogo; } catch(e){}
+    try { if (typeof catalogo !== 'undefined' && Array.isArray(catalogo)) return catalogo; } catch(e){}
+    return [];
+  }
+  function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+  function canon(modelo){
+    var s=String(modelo||'').trim().replace(/\s+/g,' ');
+    if(!s) return '';
+    try { if(typeof window.modeloBaseNombre==='function') { var z=window.modeloBaseNombre(s); if(z) return z; } } catch(e){}
+    // Normalización conservadora: quita descriptores de versión/motor/tracción, no palabras propias del modelo.
+    s=s.replace(/\s*\([^)]*\).*$/,'').trim();
+    var special=[
+      [/^(RAV\s*4)\b/i,'RAV 4'],[/^(GRAND\s+CHEROKEE)\b/i,'GRAND CHEROKEE'],[/^(GRAND\s+CARAVAN)\b/i,'GRAND CARAVAN'],
+      [/^(SANTA\s+FE)\b/i,'SANTA FE'],[/^(SANTA\s+CRUZ)\b/i,'SANTA CRUZ'],[/^(LAND\s+CRUISER)\b/i,'LAND CRUISER'],
+      [/^(RANGE\s+ROVER)\b/i,'RANGE ROVER'],[/^(OUTLANDER\s+SPORT)\b/i,'OUTLANDER SPORT'],[/^(CX[-\s]?\d+)\b/i,null],
+      [/^(CR[-\s]?V)\b/i,'CR-V'],[/^(HR[-\s]?V)\b/i,'HR-V']
+    ];
+    for(var i=0;i<special.length;i++){
+      var m=s.match(special[i][0]); if(m) return special[i][1]||m[1].toUpperCase().replace('CX ','CX-');
+    }
+    var stop=/^(todos?|todas?|inc\.?|incl\.?|incluye|exc\.?|excepto|sed[aá]n|hatchback|hatch|hb|coupe|coup[eé]|wagon|guay[ií]n|van|cargo|pickup|pick-up|pick|chasis|chassis|cabina|cab|doble|sencilla|base|limited|premium|standard|est[aá]ndar|high|higher|altura|2wd|4wd|awd|fwd|rwd|sin|con|motor|susp\.?|suspensi[oó]n|v\d|l\d|\d+(?:\.\d+)?(?:l|lts?|cc|hp|cv)?$)/i;
+    var t=s.split(/\s+/), keep=[];
+    for(var j=0;j<t.length;j++){
+      var low=t[j].replace(/[,:;]+$/,'');
+      if(j>0 && stop.test(low)) break;
+      keep.push(t[j]);
+    }
+    return keep.join(' ').replace(/[,:;\-]+$/,'').trim()||s;
+  }
+  function uniq(a){var o=[],seen={};a.forEach(function(v){v=String(v||'').trim();var k=v.toUpperCase();if(v&&!seen[k]){seen[k]=1;o.push(v);}});return o.sort(function(a,b){return a.localeCompare(b,'es',{numeric:true,sensitivity:'base'});});}
+  function setOptions(sel, vals, ph){if(!sel)return; var cur=sel.value; sel.innerHTML=''; var o=document.createElement('option');o.value='';o.textContent=ph;sel.appendChild(o); vals.forEach(function(v){var x=document.createElement('option');x.value=v;x.textContent=v;sel.appendChild(x);}); if(vals.indexOf(cur)>=0) sel.value=cur;}
+  function yearsFor(items){var now=new Date().getFullYear(), vals=[];items.forEach(function(x){var a=parseInt(x.yearMin,10), b=parseInt(x.yearMax,10);if(a&&b&&b>=a&&b-a<60){for(var y=a;y<=b;y++)vals.push(String(y));}else if(a&&x.openEnded){for(var y2=a;y2<=now;y2++)vals.push(String(y2));}else if(x.anio)vals.push(String(x.anio));});return uniq(vals);}
+  function populateModels(){
+    var c=getCatalog(), ma=document.getElementById('marca'), mo=document.getElementById('modelo'), yr=document.getElementById('anio');
+    if(!ma||!mo) return;
+    var brand=ma.value;
+    var items=c.filter(function(x){return !brand||String(x.marca||'')===brand;});
+    setOptions(mo,uniq(items.map(function(x){return canon(x.modelo);})), 'Todos los modelos');
+    if(yr) setOptions(yr,yearsFor(items),'Todos los años');
+  }
+  function populateYears(){
+    var c=getCatalog(), ma=document.getElementById('marca'), mo=document.getElementById('modelo'), yr=document.getElementById('anio');
+    if(!yr)return;
+    var items=c.filter(function(x){return (!ma||!ma.value||String(x.marca||'')===ma.value)&&(!mo||!mo.value||canon(x.modelo)===mo.value);});
+    setOptions(yr,yearsFor(items),'Todos los años');
+  }
+  function posLabel(k){return {'DEL-IZQ':'Delantero Izquierdo','DEL-DER':'Delantero Derecho','TRAS-IZQ':'Trasero Izquierdo','TRAS-DER':'Trasero Derecho','DIRECCION':'Dirección'}[k]||k;}
+  function partsHtml(x){var a=x.amortiguador||{}, h=[];['DEL-IZQ','DEL-DER','TRAS-IZQ','TRAS-DER','DIRECCION'].forEach(function(k){if(a[k])h.push('<div class="vehiclePartBox"><span>'+esc(posLabel(k))+'</span><b>'+esc(a[k])+'</b></div>');});return h.length?'<div class="vehiclePartsGrid">'+h.join('')+'</div>':'-';}
+  function searchAll(){
+    var c=getCatalog(), ma=document.getElementById('marca'), mo=document.getElementById('modelo'), yr=document.getElementById('anio');
+    var brand=ma?ma.value:'', model=mo?mo.value:'', year=yr?yr.value:'', yn=parseInt(year,10);
+    var rows=c.filter(function(x){
+      var okBrand=!brand||String(x.marca||'')===brand;
+      var okModel=!model||canon(x.modelo)===model;
+      var a=parseInt(x.yearMin,10),b=parseInt(x.yearMax,10), okYear=!year||((a&&b&&yn>=a&&yn<=b)||(a&&x.openEnded&&yn>=a)||String(x.anio||'')===year);
+      return okBrand&&okModel&&okYear;
+    });
+    var box=document.getElementById('vehiclePageResults')||document.getElementById('resultadoVehiculo'); if(!box)return;
+    if(!rows.length){box.innerHTML='<div class="box"><div class="titlebar">RESULTADO POR VEHÍCULO</div><div style="padding:22px">No se encontraron resultados.</div></div>';return;}
+    var h='<div class="box"><div class="titlebar">RESULTADO POR VEHÍCULO</div><div style="overflow-x:auto"><table class="appsTableFinal"><thead><tr><th>MARCA</th><th>MODELO / DESCRIPCIÓN</th><th>AÑOS</th><th>AMORTIGUADORES</th></tr></thead><tbody>';
+    rows.forEach(function(x){h+='<tr><td>'+esc(x.marca)+'</td><td>'+esc(x.modelo)+'</td><td>'+esc(x.anio)+'</td><td>'+partsHtml(x)+'</td></tr>';});
+    h+='</tbody></table></div></div>';box.innerHTML=h;
+  }
+  function bind(){
+    var ma=document.getElementById('marca'), mo=document.getElementById('modelo'), btn=document.getElementById('btnVeh');
+    if(!ma||!mo) return false;
+    ma.onchange=populateModels; mo.onchange=populateYears;
+    ma.addEventListener('change',populateModels); mo.addEventListener('change',populateYears);
+    if(btn){btn.onclick=function(e){if(e)e.preventDefault();searchAll();return false;};}
+    populateModels();
+    return true;
+  }
+  function boot(){var n=0,t=setInterval(function(){n++;if(bind()||n>20)clearInterval(t);},150);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  window.addEventListener('load',function(){setTimeout(bind,200);setTimeout(bind,800);});
+})();
+</script>
 </body>
 </html>
