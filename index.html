@@ -1860,6 +1860,60 @@ var lineaSel = document.getElementById("linea");
 
 function code(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
 function uniq(arr){ return Array.from(new Set(arr.filter(Boolean))).sort(function(a,b){return String(a).localeCompare(String(b),"es",{sensitivity:"base",numeric:true});}); }
+function modeloBaseNombre(modelo){
+  var original = String(modelo || "").trim().replace(/\s+/g," ");
+  if(!original) return "";
+
+  // Quita códigos/generaciones entre paréntesis para el filtro, pero conserva
+  // el texto completo en los resultados del catálogo.
+  var limpio = original.replace(/\s*\([^)]*\).*$/," ").trim();
+  var tokens = limpio.split(/\s+/);
+  if(!tokens.length) return original;
+
+  // Palabras que, en la base de aplicaciones, describen versión, carrocería,
+  // motor, tracción o condición y no forman parte del nombre principal.
+  var descriptor = {
+    "todos":1,"todo":1,"todas":1,"toda":1,
+    "inc":1,"inc.":1,"incl":1,"incl.":1,"incluye":1,
+    "exc":1,"exc.":1,"excepto":1,"except":1,
+    "version":1,"versión":1,"versiones":1,
+    "modelo":1,"modelos":1,
+    "sedan":1,"sedán":1,"hatchback":1,"hatch":1,"hb":1,"coupe":1,"coupé":1,
+    "wagon":1,"guayin":1,"guayín":1,"van":1,"cargo":1,
+    "pickup":1,"pick-up":1,"pick":1,
+    "chasis":1,"chassis":1,"cabina":1,"cab":1,
+    "doble":1,"sencilla":1,
+    "base":1,"limited":1,"premium":1,"standard":1,"estandar":1,"estándar":1,
+    "high":1,"higher":1,"altura":1,
+    "2wd":1,"4wd":1,"awd":1,"fwd":1,"rwd":1,
+    "s/":1,"c/":1,"sin":1,"con":1,
+    "motor":1,"susp":1,"susp.":1,"suspension":1,"suspensión":1
+  };
+
+  var base=[];
+  for(var i=0;i<tokens.length;i++){
+    var t=tokens[i];
+    var low=t.toLowerCase().replace(/[,:;]+$/g,"");
+
+    // RAV 4: el "4" sí pertenece al nombre del modelo.
+    if(i===1 && /^rav$/i.test(tokens[0]) && /^4$/i.test(t)){
+      base.push(t); continue;
+    }
+
+    // Motores/cilindradas/caballaje empiezan la descripción de la aplicación.
+    if(i>0 && (/^\d+(?:\.\d+)?(?:l|lts?|cc)?$/i.test(low) ||
+               /^l\d/i.test(low) || /^v\d/i.test(low) ||
+               /^\d+(?:hp|cv)$/i.test(low) || /^\d+wd$/i.test(low))){
+      break;
+    }
+    if(i>0 && descriptor[low]) break;
+
+    base.push(t);
+  }
+
+  var out=base.join(" ").replace(/[,:;\-]+$/g,"").trim();
+  return out || original;
+}
 function setOptions(sel, values, placeholder){
   sel.innerHTML = "";
   var op = document.createElement("option");
@@ -1884,12 +1938,12 @@ function yearsFor(items){
 function updateModels(){
   var m = marcaSel.value;
   var items = catalogo.filter(function(x){ return !m || x.marca === m; });
-  setOptions(modeloSel, uniq(items.map(function(x){return x.modelo;})), "Todos los modelos");
+  setOptions(modeloSel, uniq(items.map(function(x){return modeloBaseNombre(x.modelo);})), "Todos los modelos");
   setOptions(anioSel, yearsFor(items), "Todos los años");
 }
 function updateYears(){
   var m = marcaSel.value, mo = modeloSel.value;
-  var items = catalogo.filter(function(x){ return (!m || x.marca===m) && (!mo || x.modelo===mo); });
+  var items = catalogo.filter(function(x){ return (!m || x.marca===m) && (!mo || modeloBaseNombre(x.modelo)===mo); });
   setOptions(anioSel, yearsFor(items), "Todos los años");
 }
 function positions(obj){
@@ -2040,7 +2094,7 @@ function renderEquivForVehicle(item){
 function buscarVehiculo(){
   var m = marcaSel.value, mo = modeloSel.value, an = anioSel.value, yr = parseInt(an,10);
   var item = catalogo.find(function(x){
-    return (!m || x.marca===m) && (!mo || x.modelo===mo) && (!an || ((x.yearMin && yr>=x.yearMin && yr<=(x.openEnded?new Date().getFullYear():x.yearMax)) || x.anio===an));
+    return (!m || x.marca===m) && (!mo || modeloBaseNombre(x.modelo)===mo) && (!an || ((x.yearMin && yr>=x.yearMin && yr<=(x.openEnded?new Date().getFullYear():x.yearMax)) || x.anio===an));
   });
   renderVehiculo(item || null);
   renderEquivForVehicle(item);
@@ -2125,7 +2179,7 @@ document.getElementById("resultadoEquiv").innerHTML = '<div style="padding:15px"
     var yr = parseInt(anio, 10);
     return catalogo.filter(function(x){
       return (!marca || x.marca === marca) &&
-             (!modelo || x.modelo === modelo) &&
+             (!modelo || modeloBaseNombre(x.modelo) === modelo) &&
              (!anio || ((x.yearMin && x.yearMax && yr >= x.yearMin && yr <= x.yearMax) || x.anio === anio));
     });
   }
@@ -2816,7 +2870,7 @@ document.getElementById("resultadoEquiv").innerHTML = '<div style="padding:15px"
     var anio=q("anio")?q("anio").value:"";
     var yr=parseInt(anio,10);
     return catalogo.filter(function(x){
-      return (!marca||x.marca===marca)&&(!modelo||x.modelo===modelo)&&(!anio||((x.yearMin&&x.yearMax&&yr>=x.yearMin&&yr<=x.yearMax)||x.anio===anio));
+      return (!marca||x.marca===marca)&&(!modelo||modeloBaseNombre(x.modelo)===modelo)&&(!anio||((x.yearMin&&x.yearMax&&yr>=x.yearMin&&yr<=x.yearMax)||x.anio===anio));
     });
   }
   function renderVehicle(){
@@ -3653,6 +3707,6 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.20-BOOK2-AMORTIGUADORES</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.20-BOOK2-AMORTIGUADORES-MODELO-UNICO</div>
 </body>
 </html>
