@@ -3703,7 +3703,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.24-4RUNNER-FINAL</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.24-4RUNNER-UNIFICADO-V2</div>
 
 <script id="modelo-unico-hard-fix">
 (function(){
@@ -3716,7 +3716,10 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   function canon(modelo){
     var s=String(modelo||'').trim().replace(/\s+/g,' ');
     if(!s) return '';
-    try { if(typeof window.modeloBaseNombre==='function') { var z=window.modeloBaseNombre(s); if(z) return z; } } catch(e){}
+    // 4 Runner se unifica ANTES de cualquier normalizador heredado.
+    s=s.replace(/^4\s*-\s*Runner\b/i,'4 Runner');
+    if(/^4\s+Runner\b/i.test(s)) return '4 Runner';
+    try { if(typeof window.modeloBaseNombre==='function') { var z=window.modeloBaseNombre(s); if(z) return String(z).replace(/^4\s*-\s*Runner\b/i,'4 Runner'); } } catch(e){}
     // Normalización conservadora: quita descriptores de versión/motor/tracción, no palabras propias del modelo.
     s=s.replace(/\s*\([^)]*\).*$/,'').trim();
     var special=[
