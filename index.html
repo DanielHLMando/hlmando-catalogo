@@ -1860,6 +1860,9 @@ function modeloBaseNombre(modelo){
   var original = String(modelo || "").trim().replace(/\s+/g," ");
   if(!original) return "";
 
+  // Canonicalización explícita: cualquier variante 4-Runner / 4 Runner = una sola opción.
+  if(/^4\s*[-]?\s*runner\b/i.test(original)) return "4 Runner";
+
   // Quita códigos/generaciones entre paréntesis para el filtro, pero conserva
   // el texto completo en los resultados del catálogo.
   var limpio = original.replace(/\s*\([^)]*\).*$/," ").trim();
@@ -3703,7 +3706,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.24-4RUNNER-UNIFICADO-V2</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.08.24-4RUNNER-REAL-FIX</div>
 
 <script id="modelo-unico-hard-fix">
 (function(){
@@ -3789,20 +3792,5 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
 })();
 </script>
 
-<script id="fix-4runner-final">
-(function(){
-  function norm(v){return String(v||'').replace(/4-Runner/gi,'4 Runner');}
-  if(Array.isArray(window.catalogo)){
-    window.catalogo.forEach(function(x){
-      x.modelo=norm(x.modelo); x.nota=norm(x.nota);
-      if(String(x.marca||'').toUpperCase()==='TOYOTA' && String(x.modelo||'').toUpperCase()==='4 RUNNER MODELO IMPORTADO'){
-        x.amortiguador=x.amortiguador||{};
-        if(String(x.anio)==='1985-1989'){x.amortiguador['DEL-IZQ']='MSS026033';x.amortiguador['DEL-DER']='MSS026033';x.amortiguador['TRAS-IZQ']='';x.amortiguador['TRAS-DER']='';}
-        if(String(x.anio)==='1986-1995'){x.amortiguador['DEL-IZQ']='';x.amortiguador['DEL-DER']='';x.amortiguador['TRAS-IZQ']='MSS027722';x.amortiguador['TRAS-DER']='MSS027722';}
-      }
-    });
-  }
-})();
-</script>
 </body>
 </html>
