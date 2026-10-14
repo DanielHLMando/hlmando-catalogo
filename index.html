@@ -2853,7 +2853,7 @@ document.getElementById("resultadoEquiv").innerHTML = '<div style="padding:15px"
     var rows=appsByPart(raw);
     var h='<div class="partOnlyBox"><div class="titlebar">RESULTADO DE BÚSQUEDA</div><div class="partSummaryClean"><div><span class="partCleanLabel">NÚMERO DE PARTE</span><span class="partCleanNumber">'+raw+'</span></div><div><span class="partCleanLabel">APLICACIONES ENCONTRADAS</span><span class="partCleanCount">'+rows.length+'</span><span>vehículo(s)</span></div></div>';
     h+='<div class="titlebar">APLICACIONES ('+rows.length+')</div><div style="overflow-x:auto"><table class="partOnlyTable"><thead><tr><th>MARCA</th><th>MODELO</th><th>AÑOS</th><th>POSICIÓN</th><th>OBSERVACIONES</th></tr></thead><tbody>';
-    if(rows.length){rows.forEach(function(r){h+='<tr><td>'+logoAuto(r.marca)+'</td><td>'+r.modelo+'</td><td>'+r.anio+'</td><td>'+r.pos+'</td><td>'+r.obs+'</td></tr>';});}
+    if(rows.length){rows.forEach(function(r){var yr = (/GOLF\s+SPORTWAGEN/i.test(r.modelo) && /Variant TDI L4 2\.0T 2016/i.test(r.modelo) && /45\s*mm/i.test(r.modelo)) ? '2016' : r.anio; h+='<tr><td>'+logoAuto(r.marca)+'</td><td>'+r.modelo+'</td><td>'+yr+'</td><td>'+r.pos+'</td><td>'+r.obs+'</td></tr>';});}
     else{h+='<tr><td colspan="5">No se encontraron aplicaciones para este número de parte.</td></tr>';}
     h+='</tbody></table></div></div>';
     box.innerHTML=h;
@@ -3026,7 +3026,8 @@ document.getElementById("resultadoEquiv").innerHTML = '<div style="padding:15px"
     h += '<thead><tr><th>MARCA</th><th>MODELO</th><th>AÑOS</th><th>POSICIÓN</th><th>OBSERVACIONES</th></tr></thead><tbody>';
     if(rows.length){
       rows.forEach(function(r){
-        h += '<tr><td>'+logoAutoFinal(r.marca)+'</td><td>'+r.modelo+'</td><td>'+r.anio+'</td><td>'+r.pos+'</td><td>'+r.obs+'</td></tr>';
+        var yr = (/GOLF\s+SPORTWAGEN/i.test(r.modelo) && /Variant TDI L4 2\.0T 2016/i.test(r.modelo) && /45\s*mm/i.test(r.modelo)) ? '2016' : r.anio;
+        h += '<tr><td>'+logoAutoFinal(r.marca)+'</td><td>'+r.modelo+'</td><td>'+yr+'</td><td>'+r.pos+'</td><td>'+r.obs+'</td></tr>';
       });
     }else{
       h += '<tr><td colspan="5">No se encontraron aplicaciones para este número de parte.</td></tr>';
