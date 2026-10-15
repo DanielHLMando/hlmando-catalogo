@@ -3645,7 +3645,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-MANDO-PRIMERO</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-MANDO-LOGO</div>
 
 <script>
 (function(){
@@ -3763,7 +3763,7 @@ let cols=order.map(b=>{
 });
 let repHtml=replacements.map(r=>'<div class="hl-replacement-notice">El número MANDO <strong>'+esc(r.old)+'</strong> tiene reemplazo. <strong>Solicitar: '+r.targets.map(esc).join(' / ')+'</strong></div>').join('');
 let logoMap=window.finalEqLogos||{};
-let headers=order.map(b=>'<th>'+(b==='MANDO'?'<span style="font-weight:900;color:#004eaa;font-size:20px">HL MANDO</span>':logoMap[b]?'<img src="'+logoMap[b]+'" alt="'+(b==='GRC'?'GRC/Duralast':b)+'" style="max-width:150px;width:100%;height:48px;object-fit:contain">':(b==='GRC'?'GRC/Duralast':b))+'</th>').join('');
+let headers=order.map(b=>'<th>'+(b==='MANDO'&&logoMap.MANDO?'<img src="'+logoMap.MANDO+'" alt="HL Mando" style="max-width:150px;width:100%;height:48px;object-fit:contain">':logoMap[b]?'<img src="'+logoMap[b]+'" alt="'+(b==='GRC'?'GRC/Duralast':b)+'" style="max-width:150px;width:100%;height:48px;object-fit:contain">':(b==='GRC'?'GRC/Duralast':b))+'</th>').join('');
 box.innerHTML='<div class="eqOnlyBox"><div class="titlebar">EQUIVALENCIAS ENCONTRADAS</div>'+banner(found)+repHtml+'<div class="eqTableWrap"><table class="eqTableExact"><thead><tr>'+headers+'</tr></thead><tbody><tr>'+cols.map(c=>'<td>'+c.map(esc).join('<br>')+(c.length?'':'-')+'</td>').join('')+'</tr></tbody></table></div></div>';
 }
 
