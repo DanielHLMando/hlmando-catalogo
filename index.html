@@ -3504,6 +3504,28 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
       candidates.push('images/' + cleanSku + '/' + numberedBase + ext);
     });
 
+    // Photos of previous and replacement numbers represent the same application.
+    var families = [cleanSku];
+    var repl = (window.hlQa && window.hlQa.replacements) || {};
+    Object.keys(repl).forEach(function(old){
+      var family = [old].concat(String(repl[old]).split(/[,;/]+/).map(function(t){return t.trim()}).filter(Boolean));
+      if(family.some(function(t){return norm(t) === cleanSku}))family.forEach(function(t){
+        t=norm(t); if(families.indexOf(t)<0)families.push(t);
+      });
+    });
+    families.forEach(function(fam){
+      var photoMap=window.productImageMap||{};
+      var bases=photoMap[fam]||[fam+'_FRO',fam+'_LEF',fam+'_RIT'];
+      var base=bases[position-1]||bases[0]||fam+'_FRO';
+      extensions.forEach(function(ext){
+        candidates.push('images/'+fam+'/editadas/'+base+ext);
+        candidates.push('images/'+fam+'/'+base+ext);
+        candidates.push('images/'+fam+'/editadas/'+fam+'_'+suffix+ext);
+        candidates.push('images/'+fam+'/'+fam+'_'+suffix+ext);
+        candidates.push('images/'+fam+'/editadas/'+fam+'-'+position+ext);
+        candidates.push('images/'+fam+'/'+fam+'-'+position+ext);
+      });
+    });
     return candidates.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
   }
   function setWithFallback(img, candidates){
@@ -3637,7 +3659,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-MARCAS-SPARK-LOGOS</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-REEMPLAZOS-FOTOS-TODOS</div>
 
 <script>
 (function(){
@@ -3727,6 +3749,11 @@ function part(){let raw=($('parte')||{}).value||'',q=norm(raw),box=$('partPageRe
 let matchedOld=Object.keys(REPL).filter(old=>norm(old)===q||String(REPL[old]).split(/[,;/]+/).some(t=>norm(t)===q));
 let related=new Set([q]);
 matchedOld.forEach(old=>{related.add(norm(old));String(REPL[old]).split(/[,;/]+/).forEach(t=>related.add(norm(t)))});
+// Reverse resolution for every original and replacement, even when multiple codes share an application.
+for(const [old,targets] of Object.entries(REPL)){
+ const family=[old,...String(targets).split(/[,;/]+/).map(t=>t.trim()).filter(Boolean)];
+ if(family.some(t=>related.has(norm(t))))family.forEach(t=>related.add(norm(t)));
+}
 let data=DATA.filter(r=>related.has(norm(r.sku)));
 if(!data.length)data=DATA.filter(r=>norm(r.sku).includes(q));
 let skus=[...new Set(data.map(r=>r.sku))];
