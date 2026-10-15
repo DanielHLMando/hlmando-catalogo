@@ -3645,7 +3645,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-VOLKSWAGEN-CORREGIDO</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-MANDO-PRIMERO</div>
 
 <script>
 (function(){
@@ -3754,15 +3754,16 @@ let replacements=[];for(let [old,rawNew] of Object.entries(REPL)){
   if(norm(old)===q||targets.some(t=>norm(t)===q)){[old,...targets].forEach(t=>{if(CROSS[t]&&!found.includes(t))found.push(t)});}
  }
 }
-let order=['KYB','BOGE','MONROE','SYD','GROB','GRC'];
+let order=['MANDO','KYB','BOGE','MONROE','SYD','GROB','GRC'];
 let cols=order.map(b=>{
- let values=found.flatMap(s=>(CROSS[s]||{})[b]||[]);
- if(!values.length){for(let entry of replacements){if(found.includes(entry.old)||norm(entry.old)===q){for(let t of entry.targets){values.push(...((CROSS[t]||{})[b]||[]));}}}}
+ let values=b==='MANDO'?found.slice():found.flatMap(s=>(CROSS[s]||{})[b]||[]);
+ if(b==='MANDO'){for(let entry of replacements){if(found.includes(entry.old)||entry.targets.some(t=>found.includes(t))){values.push(entry.old,...entry.targets);}}}
+ if(b!=='MANDO'&&!values.length){for(let entry of replacements){if(found.includes(entry.old)||norm(entry.old)===q){for(let t of entry.targets){values.push(...((CROSS[t]||{})[b]||[]));}}}}
  return [...new Set(values.map(v=>String(v).trim()).filter(v=>v&&!['0','-','N/D','ND','N/A','#N/A'].includes(v.toUpperCase())))];
 });
 let repHtml=replacements.map(r=>'<div class="hl-replacement-notice">El número MANDO <strong>'+esc(r.old)+'</strong> tiene reemplazo. <strong>Solicitar: '+r.targets.map(esc).join(' / ')+'</strong></div>').join('');
 let logoMap=window.finalEqLogos||{};
-let headers=order.map(b=>'<th>'+(logoMap[b]?'<img src="'+logoMap[b]+'" alt="'+(b==='GRC'?'GRC/Duralast':b)+'" style="max-width:150px;width:100%;height:48px;object-fit:contain">':(b==='GRC'?'GRC/Duralast':b))+'</th>').join('');
+let headers=order.map(b=>'<th>'+(b==='MANDO'?'<span style="font-weight:900;color:#004eaa;font-size:20px">HL MANDO</span>':logoMap[b]?'<img src="'+logoMap[b]+'" alt="'+(b==='GRC'?'GRC/Duralast':b)+'" style="max-width:150px;width:100%;height:48px;object-fit:contain">':(b==='GRC'?'GRC/Duralast':b))+'</th>').join('');
 box.innerHTML='<div class="eqOnlyBox"><div class="titlebar">EQUIVALENCIAS ENCONTRADAS</div>'+banner(found)+repHtml+'<div class="eqTableWrap"><table class="eqTableExact"><thead><tr>'+headers+'</tr></thead><tbody><tr>'+cols.map(c=>'<td>'+c.map(esc).join('<br>')+(c.length?'':'-')+'</td>').join('')+'</tr></tbody></table></div></div>';
 }
 
@@ -3771,7 +3772,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 window.hlQa={data:DATA,cross:CROSS,replacements:REPL,part,vehicle,equiv};
 })();
 </script>
-<style>.hl-replacement-notice{margin:12px 8px;padding:12px 16px;background:#fff4d7;border-left:5px solid #d58b00;font-size:16px;color:#333}.eqTableExact th{width:16.666%;text-align:center}</style>
+<style>.hl-replacement-notice{margin:12px 8px;padding:12px 16px;background:#fff4d7;border-left:5px solid #d58b00;font-size:16px;color:#333}.eqTableExact th{width:14.2857%;text-align:center}</style>
 <!-- HL MANDO 2026-10-15 EQ REPLACEMENT FIX -->
 </body>
 </html>
