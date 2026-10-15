@@ -3739,16 +3739,38 @@ function vehicle(){let brand=($('marca')||{}).value||'',model=($('modelo')||{}).
 let data=DATA.filter(r=>(!brand||r.brand===brand)&&(!model||norm(r.model).startsWith(norm(model))||norm(model).startsWith(norm(r.model.split(' ')[0])))&&(!yr||r.years==='-'||r.years.split('-').some(x=>x===yr)||(r.years.includes('-')&&Number(yr)>=Number(r.years.split('-')[0])&&Number(yr)<=Number(r.years.split('-')[1]))));
 box.innerHTML='<div class="vehicleOnlyBox"><div class="titlebar">RESULTADO POR VEHÍCULO ('+data.length+')</div>'+banner(data.map(r=>r.sku))+table(data.map(r=>'<tr><td>'+logo(r.brand)+'</td><td>'+esc(r.model)+'</td><td>'+esc(r.years)+'</td><td>'+esc(r.position)+' · '+esc(r.tech)+'<div><b>'+esc(r.sku)+'</b></div>'+(REPL[r.sku]?'<div>Solicitar: <b>'+esc(REPL[r.sku])+'</b></div>':'')+(r.obs!=='-'?'<div>'+esc(r.obs)+'</div>':'')+'</td></tr>'),['MARCA','MODELO','AÑOS','NÚMEROS DE PARTE'])+'</div>';
 }
-function equiv(){let raw=($('eqparte')||{}).value||'',q=norm(raw),brand=($('linea')||{}).value||'',box=$('equivPageResults');if(!box||!q)return;
-let found=Object.keys(CROSS).filter(s=>norm(s)===q||Object.entries(CROSS[s]).some(([b,nums])=>(!brand||norm(brand)===norm(b))&&nums.some(n=>norm(n)===q)));
-if(!found.length)found=Object.keys(CROSS).filter(s=>norm(s).includes(q)||Object.entries(CROSS[s]).some(([b,nums])=>(!brand||norm(brand)===norm(b))&&nums.some(n=>norm(n).includes(q))));
-let order=['MANDO','KYB','BOGE','MONROE','SYD','GROB','GRC'];let cols=order.map(b=>{let v=b==='MANDO'?found:found.flatMap(s=>CROSS[s][b]||[]);return [...new Set(v)]});
-box.innerHTML='<div class="eqOnlyBox"><div class="titlebar">EQUIVALENCIAS ENCONTRADAS</div>'+banner(found)+'<div class="eqTableWrap"><table class="eqTableExact"><thead><tr>'+order.map(b=>'<th>'+b+'</th>').join('')+'</tr></thead><tbody><tr>'+cols.map(c=>'<td>'+c.map(esc).join('<br>')+(c.length?'':'-')+'</td>').join('')+'</tr></tbody></table></div></div>';
+function equiv(){
+let raw=($('eqparte')||{}).value||'',q=norm(raw),brand=($('linea')||{}).value||'',box=$('equivPageResults');if(!box||!q)return;
+let brandNorm=norm(brand);
+let exact=Object.keys(CROSS).filter(s=>norm(s)===q||Object.entries(CROSS[s]).some(([b,nums])=>(!brandNorm||brandNorm==='MANDO'||brandNorm===norm(b)||(brandNorm==='GRC/DURALAST'&&norm(b)==='GRC'))&&nums.some(n=>norm(n)===q)));
+let found=exact.length?exact:Object.keys(CROSS).filter(s=>norm(s).includes(q)||Object.entries(CROSS[s]).some(([b,nums])=>(!brandNorm||brandNorm==='MANDO'||brandNorm===norm(b)||(brandNorm==='GRC/DURALAST'&&norm(b)==='GRC'))&&nums.some(n=>norm(n).includes(q))));
+// Follow replacements in either direction. Keep original and replacement distinct;
+// only use substitute cross numbers when the original has no own cross numbers.
+let replacements=[];for(let [old,rawNew] of Object.entries(REPL)){
+ let targets=String(rawNew).split(/[,;/]+/).map(v=>v.trim()).filter(Boolean);
+ if(norm(old)===q||targets.some(t=>norm(t)===q)||found.some(s=>norm(s)===norm(old)||targets.some(t=>norm(t)===norm(s)))){
+  replacements.push({old:old,targets:targets});
+  if(!found.includes(old)&&norm(old)===q)found.unshift(old);
+  if(norm(old)===q)targets.forEach(t=>{if(CROSS[t]&&!found.includes(t))found.push(t)});
+ }
 }
+let order=['KYB','BOGE','MONROE','SYD','GROB','GRC'];
+let cols=order.map(b=>{
+ let values=found.flatMap(s=>(CROSS[s]||{})[b]||[]);
+ if(!values.length){for(let entry of replacements){if(found.includes(entry.old)||norm(entry.old)===q){for(let t of entry.targets){values.push(...((CROSS[t]||{})[b]||[]));}}}}
+ return [...new Set(values.map(v=>String(v).trim()).filter(v=>v&&!['0','-','N/D','ND','N/A','#N/A'].includes(v.toUpperCase())))];
+});
+let repHtml=replacements.map(r=>'<div class="hl-replacement-notice">El número MANDO <strong>'+esc(r.old)+'</strong> tiene reemplazo. <strong>Solicitar: '+r.targets.map(esc).join(' / ')+'</strong></div>').join('');
+let logoMap=window.finalEqLogos||{};
+let headers=order.map(b=>'<th>'+(logoMap[b]?'<img src="'+logoMap[b]+'" alt="'+(b==='GRC'?'GRC/Duralast':b)+'" style="max-width:150px;width:100%;height:48px;object-fit:contain">':(b==='GRC'?'GRC/Duralast':b))+'</th>').join('');
+box.innerHTML='<div class="eqOnlyBox"><div class="titlebar">EQUIVALENCIAS ENCONTRADAS</div>'+banner(found)+repHtml+'<div class="eqTableWrap"><table class="eqTableExact"><thead><tr>'+headers+'</tr></thead><tbody><tr>'+cols.map(c=>'<td>'+c.map(esc).join('<br>')+(c.length?'':'-')+'</td>').join('')+'</tr></tbody></table></div></div>';
+}
+
 function install(){[['btnParte',part],['btnVeh',vehicle],['btnEq',equiv]].forEach(([id,fn])=>{let btn=$(id);if(!btn||btn.dataset.hlQaBound)return;btn.dataset.hlQaBound='1';btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn();setTimeout(fn,400);setTimeout(fn,1200);},true);});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 window.hlQa={data:DATA,cross:CROSS,replacements:REPL,part,vehicle,equiv};
 })();
 </script>
+<style>.hl-replacement-notice{margin:12px 8px;padding:12px 16px;background:#fff4d7;border-left:5px solid #d58b00;font-size:16px;color:#333}.eqTableExact th{width:16.666%;text-align:center}</style>
 </body>
 </html>
