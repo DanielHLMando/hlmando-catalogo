@@ -3605,6 +3605,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
       });
     }
   }
+  window.hlRenderProductImages = renderProductImages;
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindProductCarousel);
   else bindProductCarousel();
   setTimeout(bindProductCarousel, 500);
@@ -3636,7 +3637,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-OBSERVACIONES-CORREGIDAS</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-REEMPLAZOS-FOTOS-CORREGIDOS</div>
 
 <script>
 (function(){
@@ -3723,9 +3724,21 @@ const banner=skus=>{let a=[...new Set(skus)].filter(s=>REPL[s]);return a.length?
 function table(rows,head){return '<div style="overflow-x:auto"><table class="partOnlyTable"><thead><tr>'+head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'}
 function appRows(data){return data.map(r=>'<tr><td>'+logo(r.brand)+'</td><td>'+esc(r.model)+'</td><td>'+esc(r.years)+'</td><td>'+esc(r.position)+'</td><td>'+esc(r.obs)+'</td></tr>')}
 function part(){let raw=($('parte')||{}).value||'',q=norm(raw),box=$('partPageResults');if(!box||!q)return;
-let data=DATA.filter(r=>norm(r.sku)===q);if(!data.length)data=DATA.filter(r=>norm(r.sku).includes(q));
-let skus=[...new Set(data.map(r=>r.sku))];box.innerHTML='<div class="partOnlyBox"><div class="titlebar">RESULTADO DE BÚSQUEDA</div><div class="partSummaryClean"><div><span class="partCleanLabel">NÚMERO DE PARTE</span><span class="partCleanNumber">'+esc(raw)+'</span></div><div><span class="partCleanLabel">APLICACIONES ENCONTRADAS</span><span class="partCleanCount">'+data.length+'</span><span>vehículo(s)</span></div></div>'+banner(skus)+'<div class="titlebar">APLICACIONES ('+data.length+')</div>'+table(appRows(data),['MARCA','MODELO','AÑOS','POSICIÓN','OBSERVACIONES'])+'</div>';
+let matchedOld=Object.keys(REPL).filter(old=>norm(old)===q||String(REPL[old]).split(/[,;/]+/).some(t=>norm(t)===q));
+let related=new Set([q]);
+matchedOld.forEach(old=>{related.add(norm(old));String(REPL[old]).split(/[,;/]+/).forEach(t=>related.add(norm(t)))});
+let data=DATA.filter(r=>related.has(norm(r.sku)));
+if(!data.length)data=DATA.filter(r=>norm(r.sku).includes(q));
+let skus=[...new Set(data.map(r=>r.sku))];
+let showSku=matchedOld.length&&data.length?data[0].sku:raw;
+box.innerHTML='<div class="partOnlyBox"><div class="titlebar">RESULTADO DE BÚSQUEDA</div><div class="partSummaryClean"><div><span class="partCleanLabel">NÚMERO DE PARTE</span><span class="partCleanNumber">'+esc(raw)+'</span></div><div><span class="partCleanLabel">APLICACIONES ENCONTRADAS</span><span class="partCleanCount">'+data.length+'</span><span>vehículo(s)</span></div></div>'+banner([...skus,...matchedOld])+ (matchedOld.length?'<div class="hl-replacement-notice">Aplicaciones correspondientes al número original: <b>'+matchedOld.map(esc).join(' / ')+'</b></div>':'')+'<div class="titlebar">APLICACIONES ('+data.length+')</div>'+table(appRows(data),['MARCA','MODELO','AÑOS','POSICIÓN','OBSERVACIONES'])+'</div>';
+if(typeof window.hlRenderProductImages==='function'){
+ const inp=$('parte'); const original=inp.value;
+ // The carousel reads the input. Temporarily use the original SKU when searching a replacement.
+ inp.value=showSku;window.hlRenderProductImages();inp.value=original;
 }
+}
+
 function vehicle(){let brand=($('marca')||{}).value||'',model=($('modelo')||{}).value||'',yr=($('anio')||{}).value||'',box=$('vehiclePageResults');if(!box)return;
 let data=DATA.filter(r=>(!brand||r.brand===brand)&&(!model||norm(r.model).startsWith(norm(model))||norm(model).startsWith(norm(r.model.split(' ')[0])))&&(!yr||r.years==='-'||r.years.split('-').some(x=>x===yr)||(r.years.includes('-')&&Number(yr)>=Number(r.years.split('-')[0])&&Number(yr)<=Number(r.years.split('-')[1]))));
 box.innerHTML='<div class="vehicleOnlyBox"><div class="titlebar">RESULTADO POR VEHÍCULO ('+data.length+')</div>'+banner(data.map(r=>r.sku))+table(data.map(r=>'<tr><td>'+logo(r.brand)+'</td><td>'+esc(r.model)+'</td><td>'+esc(r.years)+'</td><td>'+esc(r.position)+' · '+esc(r.tech)+'<div><b>'+esc(r.sku)+'</b></div>'+(REPL[r.sku]?'<div>Solicitar: <b>'+esc(REPL[r.sku])+'</b></div>':'')+(r.obs!=='-'?'<div>'+esc(r.obs)+'</div>':'')+'</td></tr>'),['MARCA','MODELO','AÑOS','NÚMEROS DE PARTE'])+'</div>';
