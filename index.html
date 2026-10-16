@@ -3659,7 +3659,7 @@ window.productImageMap = {"EX42394634":["EX42394634_FRO","EX42394634_LEF","EX423
   document.addEventListener('DOMContentLoaded',function(){fillSuggestions();addQuickTools();bindEnter('parte','btnParte');bindEnter('eqparte','btnEq');bindLoading('btnParte');bindLoading('btnEq');bindLoading('btnVeh');var bp=byId('btnParte');if(bp)bp.addEventListener('click',updateUrl);openDirectPart()});
 })();
 </script>
-<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.15-REEMPLAZOS-FOTOS-TODOS</div>
+<div style="font-size:10px;color:#777;text-align:center;padding:4px;background:#000">CATÁLOGO v2026.10.16-BUSQUEDA-VEHICULO-CORREGIDA</div>
 
 <script>
 (function(){
@@ -3767,7 +3767,7 @@ if(typeof window.hlRenderProductImages==='function'){
 }
 
 function vehicle(){let brand=($('marca')||{}).value||'',model=($('modelo')||{}).value||'',yr=($('anio')||{}).value||'',box=$('vehiclePageResults');if(!box)return;
-let data=DATA.filter(r=>(!brand||r.brand===brand)&&(!model||norm(r.model).startsWith(norm(model))||norm(model).startsWith(norm(r.model.split(' ')[0])))&&(!yr||r.years==='-'||r.years.split('-').some(x=>x===yr)||(r.years.includes('-')&&Number(yr)>=Number(r.years.split('-')[0])&&Number(yr)<=Number(r.years.split('-')[1]))));
+let data=DATA.filter(r=>(!brand||r.brand===brand)&&(!model||(()=>{let name=String(r.model||'').trim();let b=String(r.brand||'').trim();if(name.toUpperCase().startsWith(b.toUpperCase()+' '))name=name.slice(b.length).trim();let requested=norm(model),actual=norm(name);return actual===requested||actual.startsWith(requested)||requested.startsWith(actual)})())&&(!yr||r.years==='-'||r.years.split('-').some(x=>x===yr)||(r.years.includes('-')&&Number(yr)>=Number(r.years.split('-')[0])&&Number(yr)<=Number(r.years.split('-')[1]))));
 box.innerHTML='<div class="vehicleOnlyBox"><div class="titlebar">RESULTADO POR VEHÍCULO ('+data.length+')</div>'+banner(data.map(r=>r.sku))+table(data.map(r=>'<tr><td>'+logo(r.brand)+'</td><td>'+esc(r.model)+'</td><td>'+esc(r.years)+'</td><td>'+esc(r.position)+' · '+esc(r.tech)+'<div><b>'+esc(r.sku)+'</b></div>'+(REPL[r.sku]?'<div>Solicitar: <b>'+esc(REPL[r.sku])+'</b></div>':'')+(r.obs!=='-'?'<div>'+esc(r.obs)+'</div>':'')+'</td></tr>'),['MARCA','MODELO','AÑOS','NÚMEROS DE PARTE'])+'</div>';
 }
 function equiv(){
